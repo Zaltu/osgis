@@ -1,7 +1,6 @@
 """
 Functionality pertaining to the grepping/listing of file sources within a filetree.
 """
-
 import os
 import glob
 
@@ -9,15 +8,14 @@ class Aiglobber():
     """
     A specific grepper, with a specific configuration, held at a certain spot.
 
-    :param kwargs: accepts certain constraints by default. Available configurations are:
-        "types": list of valid file extension types, in standard *nix-style wildcarding format.
-            Defaults to ["*"] (all files)
-        "top": top node/directory to begin from. This is for security and performance purposes.
-            Defaults to current dir (using python's __file__)
+    :param list[str] types: list of valid file extension types, in standard *nix-style wildcarding format.
+        Defaults to ["*"] (all files)
+    :param str top: top node/directory to begin from. This is for security and performance purposes.
+        Defaults to current dir (using python's __file__)
     """
-    def __init__(self, **kwargs):
-        self.filetypes = kwargs.get("types", ["*"])
-        self.topdir = os.path.abspath(kwargs.get("top", os.path.dirname(__file__)))
+    def __init__(self, types=None, top=os.path.dirname(__file__)):
+        self.filetypes = types or ["*"]  # pylint hates this in the constructor for some reason
+        self.topdir = top
         self.position = self.topdir
 
     def aiglob(self, pathchunk):
@@ -41,7 +39,10 @@ class Aiglobber():
             raise AccessDenied(f"{newposition} is not a subdir of {self.topdir}, access is denied.")
         self.position = newposition
 
-        filelist = glob.glob(os.path.join(self.position, "*"))
+        filelist = []
+        for pattern in self.filetypes:
+            filelist.extend(glob.glob(os.path.join(self.position, pattern)))
+        filelist = list(set(filelist))
         return [os.path.basename(filepath) for filepath in filelist]
 
     def _updateposition(self, pathchunk):
