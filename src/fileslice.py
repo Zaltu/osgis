@@ -1,5 +1,5 @@
 """
-Functionality pertaining to the grepping/listing of file sources within a filetree.
+Functionality pertaining to the globbing/listing of file sources within a filetree.
 """
 import os
 import glob
